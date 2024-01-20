@@ -1,14 +1,17 @@
+from queue import Queue
 import pygame
 import random
 pygame.init()
 
+
 # Constants
 WIDTH, HEIGHT = 700, 800
 BG_COLOUR = 250, 177, 237
-ROWS, COLS = 20, 20
-MINES = 20
+ROWS, COLS = 8, 8
+SIZE = WIDTH / ROWS
+MINES = 10
 NUMBER_FONT = pygame.font.SysFont('Times New Roman', 22)
-NUMBER_COLOUS = {-1: "BLACK", 0: "PINK", 1: "BLUE", 2: "GREEN", 3: "ORANGE", 4: "PURPLE", 5: "RED", 6: "CYAN", 7: "BLACK", 8: "GRAY"}
+NUMBER_COLOUS = {1: "BLUE", 2: "GREEN", 3: "ORANGE", 4: "PURPLE", 5: "RED", 6: "CYAN", 7: "BLACK", 8: "GRAY"}
 RECTANGLE_COLOUR = "WHITE"
 
 
@@ -18,20 +21,34 @@ pygame.display.set_caption("Minesweeper")
 def draw(window, field, cover_field):
     window.fill(BG_COLOUR)
     
-    size = WIDTH // ROWS ## drawing the sizwe of the square
+    SIZE = WIDTH / ROWS ## drawing the SIZE of the square
     for i, row in enumerate(field):
-        y = size * i
+        y = SIZE * i
         for j, value in enumerate(row):
-            x = size * j
-            pygame.draw.rect(window, "black", (x, y, size, size), 2)
-            pygame.draw.rect(window, RECTANGLE_COLOUR, (x, y, size, size))
+            x = SIZE * j
 
+            is_covered = cover_field[i][j] == 0
+            if is_covered:
+                pygame.draw.rect(window, RECTANGLE_COLOUR, (x, y, SIZE, SIZE), 2)
+                pygame.draw.rect(window, "BLACK", (x, y, SIZE, SIZE), 2)
+                continue
+            else:
+                pygame.draw.rect(window, RECTANGLE_COLOUR, (x, y, SIZE, SIZE))
+                pygame.draw.rect(window, "BLACK", (x, y, SIZE, SIZE), 2)
 
-            text = NUMBER_FONT.render(str(value), 1, NUMBER_COLOUS[value])
-            window.blit(text, (x + (size/2 - text.get_width()/2), y + (size/2 - text.get_height()/2)))
+            if value > 0: # value has to be greater than 0 since -1 is a bomb and 0 we want blank.
+                text = NUMBER_FONT.render(str(value), 1, NUMBER_COLOUS[value])
+                window.blit(text, (x + (SIZE/2 - text.get_width()/2), y + (SIZE/2 - text.get_height()/2)))
 
 
     pygame.display.update()
+
+def get_grid_position(mouse_position):
+    mouse_x, mouse_y = mouse_position
+    row = int(mouse_y // SIZE)
+    col = int(mouse_x / SIZE)
+
+    return row,  col
     
 def get_neighbour(row, col, rows, cols):
     neighbours = []
@@ -79,6 +96,28 @@ def create_minefield(rows, cols, mines):
 
     return field
 
+def uncover_from_position(row, col, cover_field, field):
+    q = Queue()
+    q.put((row, col))
+    visited = set()
+
+    while not q.empty():
+        current = q.get()
+
+        neighbours = get_neighbour(*current, ROWS, COLS)
+        for row, col in neighbours:
+            if (row, col) in visited:
+                continue
+
+            value = field[row][col]
+            cover_field[row][col] = 1
+            if value == 0: # empty
+                q.put((row, col))
+
+            visited.add((row, col))
+
+    
+
 
 def main(window):
     run = True
@@ -90,6 +129,14 @@ def main(window):
             if event.type == pygame.QUIT:
                 run = False
                 break
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                row, col = get_grid_position(pygame.mouse.get_pos())
+                if row >= ROWS or col >= COLS:
+                    continue
+                cover_field[row][col] = 1
+                uncover_from_position(row, col, cover_field, field)
+
         draw(window, field, cover_field)
     pygame.quit()
 
