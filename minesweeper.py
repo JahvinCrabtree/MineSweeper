@@ -11,7 +11,7 @@ WIDTH, HEIGHT = 700, 800
 BG_COLOUR = 250, 177, 237
 ROWS, COLS = 10, 10
 SIZE = WIDTH / ROWS
-MINES = 1
+MINES = 5
 NUMBER_FONT = pygame.font.SysFont('Times New Roman', 22)
 LOSER_FONT = pygame.font.SysFont('Impact', 26)
 WINNER_FONT = pygame.font.SysFont('Impact', 26)
@@ -233,10 +233,10 @@ def main(window):
                     continue
 
                 mouse_pressed = pygame.mouse.get_pressed()
-                
+
                 if mouse_pressed[0]:  # left click
                     cover_field[row][col] = 1
-                    
+
                     if field[row][col] == -1:  # bomb
                         lost = True
 
@@ -248,20 +248,16 @@ def main(window):
                     if uncovered_squares == total_non_mine_squares:
                         win = True
 
-                    elif mouse_pressed[2]:  # right click / place flag
-                        if cover_field[row][col] != -2 and flags < MINES:
-                            cover_field[row][col] = -2
-                            flags += 1
-                            
-                elif mouse_pressed[1]:  # middle click has no function so this just handles that
-                    pass
-                
-                else:
-                    if cover_field[row][col] == -2:  # Check if the cell is already flagged
-                        flags += 1  # If it's already flagged, increment the flags (remove the flag)
-                    elif flags > 0 and cover_field[row][col] == 0:  # Check if there are remaining flags to place and the cell is not already flagged
+                elif mouse_pressed[2]:  # right click / place or remove flag
+                    if cover_field[row][col] == 0 and flags > 0:
                         cover_field[row][col] = -2
                         flags -= 1
+                    elif cover_field[row][col] == -2:
+                        cover_field[row][col] = 0
+                        flags += 1
+
+                elif mouse_pressed[1]:  # middle click has no function so this just handles that
+                    pass
 
         if lost:
             start_time = 0
@@ -276,6 +272,7 @@ def main(window):
                 clicks = 0
 
         if win:
+            start_time = 0
             draw(window, field, cover_field, current_time, flags)
             win = winner(window, "Congratulations! You Win! Click to reset.")  # Update the 'win' variable
 
