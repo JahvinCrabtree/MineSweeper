@@ -248,17 +248,20 @@ def main(window):
                     if uncovered_squares == total_non_mine_squares:
                         win = True
 
-                elif mouse_pressed[2]:  # right click
-                    if cover_field[row][col] != -2:
-                        cover_field[row][col] = -2
-                        flags -= 1
-
+                    elif mouse_pressed[2]:  # right click / place flag
+                        if cover_field[row][col] != -2 and flags < MINES:
+                            cover_field[row][col] = -2
+                            flags += 1
+                            
                 elif mouse_pressed[1]:  # middle click has no function so this just handles that
                     pass
                 
                 else:
-                    flags += 1
-                    cover_field[row][col] = -2
+                    if cover_field[row][col] == -2:  # Check if the cell is already flagged
+                        flags += 1  # If it's already flagged, increment the flags (remove the flag)
+                    elif flags > 0 and cover_field[row][col] == 0:  # Check if there are remaining flags to place and the cell is not already flagged
+                        cover_field[row][col] = -2
+                        flags -= 1
 
         if lost:
             start_time = 0
