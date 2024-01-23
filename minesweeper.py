@@ -244,6 +244,7 @@ class MinesweeperGame:
         pygame.quit()
 
 
+# handles placing the mines, and calculating adjacent cells using bfs. 
 class MinesweeperField:
 
     def __init__(self, rows, cols, mines):
@@ -253,14 +254,17 @@ class MinesweeperField:
         self.field = self.create_minefield()
 
     def create_minefield(self):
+        # create the field with the dimensions that are passed to it. 
+        # creates the 2d array. 
         field = [[0 for _ in range(self.cols)] for _ in range(self.rows)]
         mine_positions = set()
-
+ 
         while len(mine_positions) < self.mines:
             row = random.randrange(0, self.rows)
             col = random.randrange(0, self.cols)
             pos = row, col
 
+            #randomly places mines throughout the grid - mine_position makes sures it not on top of another.
             if pos not in mine_positions:
                 mine_positions.add(pos)
                 field[row][col] = -1
@@ -274,9 +278,11 @@ class MinesweeperField:
 
         return field
 
+    # iterative bfs through adjacent tiles 
     def get_neighbours(self, row, col):
-        neighbours = []
+        neighbours = [] # empty list to store neighbours (adjacent tiles)
 
+        # first 4 checks up, down left right
         if row > 0:
             neighbours.append((row - 1, col))
         if row < self.rows - 1:
@@ -285,7 +291,8 @@ class MinesweeperField:
             neighbours.append((row, col - 1))
         if col < self.cols - 1:
             neighbours.append((row, col + 1))
-
+        
+        # check diagonals
         if row > 0 and col > 0:
             neighbours.append((row - 1, col - 1))
         if row < self.rows - 1 and col < self.cols - 1:
@@ -297,6 +304,7 @@ class MinesweeperField:
 
         return neighbours
 
+    # returns the information of a tile. 
     def get_cell_value(self, row, col):
         return self.field[row][col]
 
@@ -305,7 +313,8 @@ def main():
     window = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Minesweeper")
 
-    minesweeper_game = MinesweeperGame(ROWS, COLS, MINES)
+    # create the minesweeper class get the size and mines. 
+    minesweeper_game = MinesweeperGame(ROWS, COLS, MINES) 
     minesweeper_game.main(window)
 
 if __name__ == "__main__":
